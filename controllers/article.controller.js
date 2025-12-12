@@ -2,33 +2,51 @@ const Joi = require("joi");
 const ArticleModel = require("../models/article.models.js");
 
 
+
 const postArticle = async (req, res, next) => {
-    const articleSchema = Joi.object({
-        title: Joi.string().min(5).required(),
-        content: Joi.string().min(20).required(),
-        author: Joi.string().optional().default("Guest")
-    });
-
-    const {error, value} = articleSchema.validate(req.body)
-
-    if(!error){
-        return res.status(400).json("Please provide article title and content")
-    }
-    try{
-        const newArticle = new ArticleModel({ value });
+    try {
+        const newArticle = new ArticleModel({
+            title: req.body.title,
+            content: req.body.content,
+            author: req.user._id
+        });
         await newArticle.save();
-        return res.status(200).json({message: "Article Created", data: newArticle})
-    }catch (error) {
-        console.error(error)
-        next();
+
+        return res.status(200).json({ message: "Article created", data: newArticle,});
+    } catch (error) {
+        console.error(error);
+        next(error);
+        
     }
-};
+}
+
+// const postArticle = async (req, res, next) => {
+    // const articleSchema = Joi.object({
+    //     title: Joi.string().min(5).required(),
+    //     content: Joi.string().min(20).required(),
+    //     author: Joi.string().optional().default("Guest")
+    // });
+
+//     const {error, value} = articleSchema.validate(req.body)
+
+//     if(!error){
+//         return res.status(400).json("Please provide article title and content");
+//     }
+//     try{
+//          const newArticle = new ArticleModel({ value });
+//         await newArticle.save();
+//         return res.status(200).json({message: "Article Created", data: newArticle});
+//     }catch (error) {
+//         console.error(error)
+//         next();
+//     }
+// };
 
 
 
 const getAllArticle = async (req, res, next) => {
-    const {limit=10, page=1} = req.query;
-    const skip = (page-1)*limit;
+    // const {limit=10, page=1} = req.query;
+    // const skip = (page-1)*limit;
     try{
         const articles = (await ArticleModel.find({})).sort({createdAt: -1}).limit(limit).skip(skip);
         return res.status(200).json({message: "Article fetched successfully", data: articles});
